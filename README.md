@@ -1,71 +1,105 @@
-Jogo de Sudoku em JavaFX 🎮
+# Sudoku em JavaFX
 
-Um jogo de Sudoku com interface gráfica em JavaFX, intuitivo e funcional. Gere novos jogos, resolva automaticamente, limpe o tabuleiro e alterne temas! ✨
+![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![JavaFX](https://img.shields.io/badge/JavaFX-17-4285F4?style=for-the-badge&logo=java&logoColor=white)
+![License](https://img.shields.io/badge/Licen%C3%A7a-MIT-green?style=for-the-badge)
 
-Estrutura do Repositório 📂
+Aplicação desktop completa de **Sudoku** desenvolvida em **Java** com interface gráfica moderna em **JavaFX**. O projeto combina geração procedural de tabuleiros com garantia de solução única via *backtracking* e validação concorrente utilizando **27 threads sincronizadas por semáforos**.
 
-•
-src/: Código fonte Java. 💻
+---
 
-•
-TabuleiroSudoku.java: Lógica do jogo (geração, validação, solução). 🧠
+## Principais Funcionalidades
 
-•
-TelaSudoku.java: Interface gráfica (GUI) e interação do usuário. 👀
+- **Geração Inteligente com Solução Única**:
+  - Tabuleiros gerados dinamicamente por *backtracking* aleatório.
+  - Três níveis de dificuldade (**Fácil**, **Médio** e **Difícil**), garantindo matematicamente que cada desafio possua uma única solução válida.
+- **Validação Paralela (Multithreading & Semáforos)**:
+  - Verificação de vitória executada em paralelo por **27 threads simultâneas** (9 para linhas, 9 para colunas e 9 para sub-blocos 3×3) sincronizadas com `java.util.concurrent.Semaphore`.
+- **Interface Gráfica Responsiva e Moderna**:
+  - **Temas Claro (Dia) e Escuro (Noite)** alternáveis em tempo real tanto no menu inicial quanto durante a partida.
+  - **Destaques Visuais Inteligentes**: iluminação automática da célula selecionada, de sua respectiva linha, coluna e quadrante 3×3, além de destaque para todas as células com o mesmo número.
+  - **Modo Notas (Rascunho)**: permite anotar candidatos de `1` a `9` dentro das células vazias, limpando automaticamente notas conflitantes quando um valor definitivo é inserido.
+  - **Feedback Visual de Conflitos**: animação de alerta e destaque em vermelho das células conflitantes sem interromper a partida com janelas modais.
+  - **Sistema de Dicas, Reinício e Resolução Automática**: revele uma célula específica, limpe apenas as jogadas realizadas ou visualize a solução completa instantaneamente.
+  - **Ícones Vetoriais (`SVGPath`)**: ícones renderizados nativamente em vetor para nitidez em qualquer resolução.
 
+---
 
+## Controles e Atalhos de Teclado
 
-•
-bin/: Arquivos compilados. 📦
+Além da interação completa via mouse e do teclado numérico lateral na tela, o jogo suporta navegação rápida pelo teclado:
 
-•
-out/: Saída de produção. 📤
+| Tecla | Ação |
+| :--- | :--- |
+| **`1` – `9`** (ou Numpad) | Insere o número na célula selecionada (ou alterna candidato no Modo Notas) |
+| **`Setas (↑ ↓ ← →)`** ou **`W A S D`** | Move a seleção pelo tabuleiro 9×9 |
+| **`N`** | Ativa / desativa o **Modo Notas (Rascunho)** |
+| **`Backspace`** / **`Delete`** / **`0`** | Apaga o valor ou as notas da célula selecionada |
 
-•
-.idea/: Configurações IntelliJ IDEA. ⚙️
+---
 
-•
-LICENSE: Licença MIT. 📜
+## Arquitetura do Projeto
 
-Como o Código Funciona 💡
+```text
+Sudoku_game/
+├── src/
+│   ├── TabuleiroSudoku.java   # Regras de negócio, geração por backtracking e validação paralela (27 threads)
+│   └── TelaSudoku.java        # Interface gráfica JavaFX, eventos de teclado/mouse, temas e ícones SVG
+├── lib/                       # Dependências locais do JavaFX 17 (base, controls, graphics)
+├── bin/                       # Bytecode compilado (.class)
+├── iniciar.bat                # Script de compilação e execução rápida para Windows
+├── pom.xml                    # Configuração de build e dependências via Apache Maven
+└── LICENSE                    # Licença MIT
+```
 
-O jogo é dividido em lógica (TabuleiroSudoku.java) e interface (TelaSudoku.java).
+### Detalhamento dos Módulos
 
-TabuleiroSudoku.java 🎲
+1. **`TabuleiroSudoku.java`**:
+   - `gerarTabuleiroComDificuldade(String)`: preenche o tabuleiro completo via *backtracking* (`preencherTabuleiro`) e remove células verificando a unicidade da solução (`temUnicaSolucao` / `contarSolucoes`).
+   - `validarJogada(int, int, int)`: verifica em $O(1)$ se um número respeita as regras de linha, coluna e sub-bloco 3×3.
+   - `validarTabuleiroParalelo()`: instancia e coordena `ValidadorLinhaSudoku`, `ValidadorColunaSudoku` e `ValidadorBlocoSudoku` utilizando `Thread` e `Semaphore`.
+2. **`TelaSudoku.java`**:
+   - Gerencia o ciclo de vida da aplicação JavaFX mantendo uma única `Scene` (preservando o estado de maximização/tela cheia entre transições).
+   - Renderiza o grid 9×9, cronômetro em tempo real (`Timeline`), contador de números restantes e painel de ações.
 
-Gerencia o tabuleiro, gera novos jogos (com backtracking), valida movimentos e verifica soluções. Métodos principais incluem inicialização, definição/obtenção de valores, verificação de células fixas, impressão, embaralhamento e resolução. ✔️
+---
 
-TelaSudoku.java 🖥️
+## Como Executar
 
-Controla a interface e interação. Exibe a tela inicial com opções de Novo Jogo, Carregar (futuro 💾), e Sair. Renderiza o tabuleiro, permite entrada de números, validações e exibe alertas. Inclui botões para Resolver, Limpar, Alternar Tema (claro/escuro 🌓) e Voltar ao Menu. 👆✅
+### Pré-requisitos
+- **Java Development Kit (JDK) 17** ou superior instalado e configurado no `PATH`.
 
-Como Rodar o Jogo ▶️
+### Opção 1: Execução Rápida no Windows (Recomendado)
+O repositório já inclui as bibliotecas do JavaFX na pasta `lib/` e um script automatizado que compila o código-fonte em UTF-8 e inicia o jogo:
 
-Pré-requisitos ✅
+```powershell
+.\iniciar.bat
+```
 
-•
-Java Development Kit (JDK): Versão 11+ (com JavaFX). ☕
+### Opção 2: Via Linha de Comando (`javac` / `java`)
+Para compilar e executar manualmente utilizando os módulos locais na pasta `lib/`:
 
-•
-JavaFX SDK: Se não incluso no JDK, baixe em openjfx.io. 🌐
+```powershell
+# 1. Compilar os arquivos-fonte
+javac -encoding UTF-8 --module-path "lib" --add-modules javafx.controls -d bin src\TabuleiroSudoku.java src\TelaSudoku.java
 
-Passos para Executar 🚀
+# 2. Iniciar a aplicação
+java --module-path "lib" --add-modules javafx.controls -cp bin TelaSudoku
+```
 
-1.
-Clone o Repositório:
+### Opção 3: Via Apache Maven
+Caso utilize o Maven, o `pom.xml` já está configurado com o `javafx-maven-plugin`:
 
-2.
-IDE (Recomendado): Importe para IntelliJ IDEA 💡 ou Eclipse 🌑. Configure o JavaFX SDK nas bibliotecas do projeto e execute TelaSudoku.main(). ▶️
+```powershell
+mvn clean javafx:run
+```
 
-3.
-Linha de Comando (Avançado): Compile e execute, apontando para os módulos JavaFX. Exemplo:
+---
 
-Licença ⚖️
+## Licença
 
-Este projeto está sob a Licença MIT. 📄
+Distribuído sob a licença **MIT**. Consulte o arquivo [LICENSE](LICENSE) para mais informações.
 
+---
 
-
-
-Autor: Davi Castro
-
+**Autor:** Davi Castro

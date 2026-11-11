@@ -4,11 +4,13 @@ import java.util.concurrent.Semaphore;
 public class TabuleiroSudoku {
     private boolean fixas[][];
     private Integer[][] tabuleiro;
+    private Integer[][] solucao;
     private Random random = new Random();
 
     public TabuleiroSudoku() {
         tabuleiro = new Integer[9][9];
         fixas = new boolean[9][9];
+        solucao = new Integer[9][9];
     }
 
     // Aceita Null
@@ -20,8 +22,30 @@ public class TabuleiroSudoku {
         return tabuleiro[linha][coluna];
     }
 
+    public Integer getValorSolucao(int linha, int coluna) {
+        return solucao[linha][coluna];
+    }
+
     public boolean isFixa(int linha, int coluna) {
         return fixas[linha][coluna];
+    }
+
+    public void limparJogadas() {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (!fixas[i][j]) {
+                    tabuleiro[i][j] = null;
+                }
+            }
+        }
+    }
+
+    public void resolverTabuleiro() {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                tabuleiro[i][j] = solucao[i][j];
+            }
+        }
     }
 
     public void imprimirTabuleiro() {
@@ -38,21 +62,23 @@ public class TabuleiroSudoku {
     }
 
     public boolean validarJogada(int linha, int coluna, int valor){
-        //verifica linha
-        for (int i = 0; i < 9; i++){
-            if(tabuleiro[i][coluna] != null && tabuleiro[i][coluna] == valor) return false;
-        }
         //verifica coluna
+        for (int i = 0; i < 9; i++){
+            if(i != linha && tabuleiro[i][coluna] != null && tabuleiro[i][coluna] == valor) return false;
+        }
+        //verifica linha
         for (int j = 0; j < 9; j++){
-            if(tabuleiro[linha][j] != null && tabuleiro[linha][j] == valor ) return false;
+            if(j != coluna && tabuleiro[linha][j] != null && tabuleiro[linha][j] == valor ) return false;
         }
         //verifica quadrante
         int inicioLinha = (linha / 3) * 3;
         int inicioColuna = (coluna / 3) * 3;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                if (tabuleiro[inicioLinha + i][inicioColuna + j] != null &&
-                        tabuleiro[inicioLinha + i][inicioColuna + j] == valor) return false;
+                int r = inicioLinha + i;
+                int c = inicioColuna + j;
+                if ((r != linha || c != coluna) && tabuleiro[r][c] != null &&
+                        tabuleiro[r][c] == valor) return false;
             }
         }
         return true;
@@ -69,7 +95,17 @@ public class TabuleiroSudoku {
 
     // Método para gerar o tabuleiro de acordo com a dificuldade, garantindo solução única
     public void gerarTabuleiroComDificuldade(String dificuldade) {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                tabuleiro[i][j] = null;
+                fixas[i][j] = false;
+                solucao[i][j] = null;
+            }
+        }
         preencherTabuleiro(0, 0);
+        for (int i = 0; i < 9; i++) {
+            System.arraycopy(tabuleiro[i], 0, solucao[i], 0, 9);
+        }
 
         int casasParaRemover;
         switch (dificuldade.toLowerCase()) {
